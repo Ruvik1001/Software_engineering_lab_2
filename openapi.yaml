@@ -1,0 +1,640 @@
+openapi: 3.1.0
+info:
+  title: proxy_service
+  version: 0.1.0
+paths:
+  /api/v1/auth/register:
+    post:
+      tags:
+      - proxy-auth
+      summary: 'Proxy: register'
+      description: Passes registration request to auth service.
+      operationId: register_api_v1_auth_register_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthRegisterRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthRegisterResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/auth/login:
+    post:
+      tags:
+      - proxy-auth
+      summary: 'Proxy: login'
+      description: Passes login request to auth service.
+      operationId: login_api_v1_auth_login_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthLoginRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokenResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/auth/refresh:
+    post:
+      tags:
+      - proxy-auth
+      summary: 'Proxy: refresh token'
+      description: Passes refresh request to auth service.
+      operationId: refresh_api_v1_auth_refresh_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthRefreshRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokenResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/users/by-login/{login}:
+    get:
+      tags:
+      - proxy-users
+      summary: 'Proxy: get user by login'
+      description: Authorized route. Fetches one user profile.
+      operationId: user_by_login_api_v1_users_by_login__login__get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: login
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Login
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/users/search:
+    get:
+      tags:
+      - proxy-users
+      summary: 'Proxy: search users'
+      description: Authorized route. Finds users by name mask.
+      operationId: user_search_api_v1_users_search_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: mask
+        in: query
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          title: Mask
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserResponse'
+                title: Response User Search Api V1 Users Search Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/goals:
+    get:
+      tags:
+      - proxy-goals
+      summary: 'Proxy: list goals'
+      description: Authorized route. Returns goals from goal service.
+      operationId: list_goals_api_v1_goals_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/GoalResponse'
+                type: array
+                title: Response List Goals Api V1 Goals Get
+      security:
+      - HTTPBearer: []
+    post:
+      tags:
+      - proxy-goals
+      summary: 'Proxy: create goal'
+      description: Authorized route. Creates goal in goal service.
+      operationId: create_goal_api_v1_goals_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GoalCreateRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GoalResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - HTTPBearer: []
+  /api/v1/tasks:
+    post:
+      tags:
+      - proxy-tasks
+      summary: 'Proxy: create task'
+      description: Authorized route. Creates task in task service.
+      operationId: create_task_api_v1_tasks_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskCreateRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - HTTPBearer: []
+  /api/v1/tasks/by-goal/{goal_id}:
+    get:
+      tags:
+      - proxy-tasks
+      summary: 'Proxy: list goal tasks'
+      description: Authorized route. Returns tasks for selected goal.
+      operationId: tasks_by_goal_api_v1_tasks_by_goal__goal_id__get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: goal_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Goal Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaskResponse'
+                title: Response Tasks By Goal Api V1 Tasks By Goal  Goal Id  Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/tasks/{task_id}/status:
+    patch:
+      tags:
+      - proxy-tasks
+      summary: 'Proxy: update task status'
+      description: Authorized route. Updates task status in task service.
+      operationId: task_status_api_v1_tasks__task_id__status_patch
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: task_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Task Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskUpdateStatusRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/notification:
+    post:
+      tags:
+      - proxy-notification
+      summary: 'Proxy: send notification'
+      description: Authorized route. Calls mock notification service.
+      operationId: send_notification_api_v1_notification_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationSendRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationSendResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - HTTPBearer: []
+  /api/v1/calendar/events:
+    get:
+      tags:
+      - proxy-calendar
+      summary: 'Proxy: list calendar events'
+      description: Authorized route. Calls mock calendar service.
+      operationId: calendar_events_api_v1_calendar_events_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/CalendarEventResponse'
+                type: array
+                title: Response Calendar Events Api V1 Calendar Events Get
+      security:
+      - HTTPBearer: []
+  /health:
+    get:
+      summary: Health
+      operationId: health_health_get
+      parameters:
+      - name: ui_mode
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+          title: Ui Mode
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+components:
+  schemas:
+    AuthLoginRequest:
+      properties:
+        login:
+          type: string
+          format: email
+          title: Login
+        password:
+          type: string
+          title: Password
+      type: object
+      required:
+      - login
+      - password
+      title: AuthLoginRequest
+    AuthRefreshRequest:
+      properties:
+        refresh_token:
+          type: string
+          title: Refresh Token
+      type: object
+      required:
+      - refresh_token
+      title: AuthRefreshRequest
+    AuthRegisterRequest:
+      properties:
+        login:
+          type: string
+          format: email
+          title: Login
+          examples:
+          - john@example.com
+        password:
+          type: string
+          maxLength: 128
+          minLength: 4
+          title: Password
+          examples:
+          - qwerty
+        first_name:
+          type: string
+          maxLength: 64
+          minLength: 1
+          title: First Name
+        last_name:
+          type: string
+          maxLength: 64
+          minLength: 1
+          title: Last Name
+      type: object
+      required:
+      - login
+      - password
+      - first_name
+      - last_name
+      title: AuthRegisterRequest
+    AuthRegisterResponse:
+      properties:
+        user_id:
+          type: integer
+          title: User Id
+        login:
+          type: string
+          title: Login
+        first_name:
+          type: string
+          title: First Name
+        last_name:
+          type: string
+          title: Last Name
+      type: object
+      required:
+      - user_id
+      - login
+      - first_name
+      - last_name
+      title: AuthRegisterResponse
+    AuthTokenResponse:
+      properties:
+        access_token:
+          type: string
+          title: Access Token
+        refresh_token:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Refresh Token
+        token_type:
+          type: string
+          title: Token Type
+          default: bearer
+      type: object
+      required:
+      - access_token
+      title: AuthTokenResponse
+    CalendarEventResponse:
+      properties:
+        id:
+          type: integer
+          title: Id
+        title:
+          type: string
+          title: Title
+      type: object
+      required:
+      - id
+      - title
+      title: CalendarEventResponse
+    GoalCreateRequest:
+      properties:
+        title:
+          type: string
+          maxLength: 256
+          minLength: 1
+          title: Title
+      type: object
+      required:
+      - title
+      title: GoalCreateRequest
+    GoalResponse:
+      properties:
+        id:
+          type: integer
+          title: Id
+        title:
+          type: string
+          title: Title
+        owner_id:
+          type: integer
+          title: Owner Id
+      type: object
+      required:
+      - id
+      - title
+      - owner_id
+      title: GoalResponse
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    NotificationSendRequest:
+      properties:
+        message:
+          type: string
+          maxLength: 2048
+          minLength: 1
+          title: Message
+      type: object
+      required:
+      - message
+      title: NotificationSendRequest
+    NotificationSendResponse:
+      properties:
+        result:
+          type: string
+          title: Result
+      type: object
+      required:
+      - result
+      title: NotificationSendResponse
+    TaskCreateRequest:
+      properties:
+        goal_id:
+          type: integer
+          title: Goal Id
+        title:
+          type: string
+          maxLength: 256
+          minLength: 1
+          title: Title
+        status:
+          type: string
+          enum:
+          - new
+          - in_progress
+          - done
+          title: Status
+          default: new
+      type: object
+      required:
+      - goal_id
+      - title
+      title: TaskCreateRequest
+    TaskResponse:
+      properties:
+        id:
+          type: integer
+          title: Id
+        goal_id:
+          type: integer
+          title: Goal Id
+        title:
+          type: string
+          title: Title
+        owner_id:
+          type: integer
+          title: Owner Id
+        status:
+          type: string
+          enum:
+          - new
+          - in_progress
+          - done
+          title: Status
+      type: object
+      required:
+      - id
+      - goal_id
+      - title
+      - owner_id
+      - status
+      title: TaskResponse
+    TaskUpdateStatusRequest:
+      properties:
+        status:
+          type: string
+          enum:
+          - new
+          - in_progress
+          - done
+          title: Status
+      type: object
+      required:
+      - status
+      title: TaskUpdateStatusRequest
+    UserResponse:
+      properties:
+        id:
+          type: integer
+          title: Id
+        login:
+          type: string
+          title: Login
+        first_name:
+          type: string
+          title: First Name
+        last_name:
+          type: string
+          title: Last Name
+      type: object
+      required:
+      - id
+      - login
+      - first_name
+      - last_name
+      title: UserResponse
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+        input:
+          title: Input
+        ctx:
+          type: object
+          title: Context
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+  securitySchemes:
+    HTTPBearer:
+      type: http
+      scheme: bearer

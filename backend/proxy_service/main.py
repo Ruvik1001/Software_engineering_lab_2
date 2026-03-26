@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import time
 import html as html_lib
-
+import yaml
 import httpx
+
 from fastapi import FastAPI, Query
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, Response
 
 from api.v1.router import proxy_router as proxy_api_router
 from util.config import (
@@ -93,3 +94,12 @@ async def health(ui_mode: int = Query(default=0, ge=0)):
         return HTMLResponse(html)
 
     return {"ui_mode": ui_mode, "services": results}
+
+@app.get("/openapi.yaml", include_in_schema=False)
+async def get_openapi_yaml():
+    # Получаем спецификацию OpenAPI (генерируется один раз)
+    openapi_json = app.openapi()
+    # Преобразуем в YAML
+    yaml_content = yaml.dump(openapi_json, allow_unicode=True, sort_keys=False)
+    # Возвращаем с правильным медиатипом
+    return Response(content=yaml_content, media_type="application/x-yaml")
