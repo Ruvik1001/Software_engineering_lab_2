@@ -1,3 +1,5 @@
+"""Proxy calendar routes."""
+
 from fastapi import APIRouter, Depends
 
 from use_case.calendar_proxy import CalendarProxyUseCase
@@ -18,5 +20,6 @@ async def calendar_events(
     token: str = Depends(get_token_value),
     use_case: CalendarProxyUseCase = Depends(get_calendar_proxy_use_case),
 ) -> list[CalendarEventResponse]:
+    """Authorize and list calendar events via calendar service."""
     await require_user(token)
     return await use_case.list_events(token=token)

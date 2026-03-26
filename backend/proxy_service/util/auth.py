@@ -1,3 +1,5 @@
+"""Proxy auth helpers (bearer token + validation via auth_service)."""
+
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 import httpx
@@ -10,6 +12,7 @@ bearer_scheme = HTTPBearer(auto_error=False)
 def get_token_value(
     credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
 ) -> str:
+    """Extract bearer token string from Authorization header."""
     # NOTE: HTTPBearer injects credentials; auto_error=False keeps it None on missing/bad scheme.
     if credentials is None or not credentials.scheme.lower().startswith("bearer"):
         raise HTTPException(status_code=401, detail="missing bearer token")
@@ -17,6 +20,7 @@ def get_token_value(
 
 
 async def require_user(token: str) -> int:
+    """Validate token via auth service and return user_id."""
     async with httpx.AsyncClient(timeout=5) as client:
         resp = await client.post(
             f"{AUTH_URL}/api/v1/auth/validate",

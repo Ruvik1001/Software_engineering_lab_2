@@ -1,3 +1,5 @@
+"""Proxy service environment configuration."""
+
 import os
 
 from dotenv import load_dotenv

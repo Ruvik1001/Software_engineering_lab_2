@@ -1,3 +1,5 @@
+"""Proxy user routes."""
+
 from fastapi import APIRouter, Depends, Query
 
 from use_case.user_proxy import UserProxyUseCase
@@ -19,6 +21,7 @@ async def user_by_login(
     token: str = Depends(get_token_value),
     use_case: UserProxyUseCase = Depends(get_user_proxy_use_case),
 ) -> UserResponse:
+    """Authorize and fetch user by login via user service."""
     await require_user(token)
     return await use_case.by_login(token=token, login=login)
 
@@ -34,5 +37,6 @@ async def user_search(
     token: str = Depends(get_token_value),
     use_case: UserProxyUseCase = Depends(get_user_proxy_use_case),
 ) -> list[UserResponse]:
+    """Authorize and search users via user service."""
     await require_user(token)
     return await use_case.search(token=token, mask=mask)

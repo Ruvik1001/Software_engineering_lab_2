@@ -1,7 +1,10 @@
-from fastapi.testclient import TestClient
+"""Integration tests for notification service mock API."""
+
 from pathlib import Path
 import importlib.util
 import sys
+
+from fastapi.testclient import TestClient
 
 _service_dir = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_service_dir))
@@ -12,7 +15,10 @@ _module = importlib.util.module_from_spec(_spec)
 for k in list(sys.modules.keys()):
     if (
         k in {"api", "schema", "use_case", "util", "model", "interface", "implementation"}
-        or any(k.startswith(p + ".") for p in ["api", "schema", "use_case", "util", "model", "interface", "implementation"])
+        or any(
+            k.startswith(p + ".")
+            for p in ["api", "schema", "use_case", "util", "model", "interface", "implementation"]
+        )
     ):
         del sys.modules[k]
 _spec.loader.exec_module(_module)
@@ -21,11 +27,13 @@ app = _module.app
 client = TestClient(app)
 
 def test_mock_notification_endpoint():
+    """POST /notification returns 200."""
     response = client.post("/api/v1/notification", json={"message": "test"})
     assert response.status_code == 200
 
 
 def test_mock_notification_endpoint_second_message():
+    """POST /notification returns mocked result."""
     response = client.post("/api/v1/notification", json={"message": "hello"})
     assert response.status_code == 200
     assert response.json()["result"] == "mocked"

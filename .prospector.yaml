@@ -1,0 +1,11 @@
+inherits:
+  - strictness_medium
+
+pylint:
+  options:
+    rcfile: .pylintrc
+
+pycodestyle:
+  options:
+    max-line-length: 120
+

@@ -1,8 +1,10 @@
-from fastapi.testclient import TestClient
+"""Integration tests for task service HTTP API."""
 
 from pathlib import Path
 import importlib.util
 import sys
+
+from fastapi.testclient import TestClient
 
 _service_dir = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_service_dir))
@@ -13,7 +15,10 @@ _module = importlib.util.module_from_spec(_spec)
 for k in list(sys.modules.keys()):
     if (
         k in {"api", "schema", "use_case", "util", "model", "interface", "implementation"}
-        or any(k.startswith(p + ".") for p in ["api", "schema", "use_case", "util", "model", "interface", "implementation"])
+        or any(
+            k.startswith(p + ".")
+            for p in ["api", "schema", "use_case", "util", "model", "interface", "implementation"]
+        )
     ):
         del sys.modules[k]
 _spec.loader.exec_module(_module)
@@ -23,6 +28,7 @@ client = TestClient(app)
 
 
 def test_task_lifecycle() -> None:
+    """Create task, list by goal, update status, and enforce ownership."""
     created = client.post(
         "/api/v1/tasks",
         json={"goal_id": 1, "title": "Task 1"},
@@ -56,6 +62,7 @@ def test_task_lifecycle() -> None:
 
 
 def test_invalid_status_on_create() -> None:
+    """Creating a task with invalid status returns 400."""
     response = client.post(
         "/api/v1/tasks",
         json={"goal_id": 1, "title": "T", "status": "bad"},
@@ -65,6 +72,7 @@ def test_invalid_status_on_create() -> None:
 
 
 def test_update_missing_task() -> None:
+    """Updating a non-existing task returns 404."""
     response = client.patch(
         "/api/v1/tasks/9999/status",
         json={"status": "done"},
@@ -74,6 +82,7 @@ def test_update_missing_task() -> None:
 
 
 def test_missing_x_user_id() -> None:
+    """Missing X-User-Id header returns 401."""
     response_post = client.post("/api/v1/tasks", json={"goal_id": 1, "title": "T"})
     assert response_post.status_code == 401
 
@@ -82,5 +91,6 @@ def test_missing_x_user_id() -> None:
 
 
 def test_tasks_by_goal_missing_x_user_id() -> None:
+    """Missing X-User-Id header returns 401 for list endpoint."""
     response = client.get("/api/v1/tasks/by-goal/1")
     assert response.status_code == 401

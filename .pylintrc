@@ -1,0 +1,5 @@
+[MAIN]
+jobs=0
+
+[FORMAT]
+max-line-length=120

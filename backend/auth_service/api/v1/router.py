@@ -1,3 +1,5 @@
+"""Auth service HTTP API routes."""
+
 from fastapi import APIRouter, Depends, HTTPException
 
 from schema.auth import (
@@ -24,6 +26,7 @@ auth_router = APIRouter(tags=["auth"])
     responses={400: {"description": "Login already exists"}},
 )
 def register_endpoint(req: RegisterRequest, service: AuthService = Depends(get_auth_service)) -> RegisterResponse:
+    """Register a new user and return user profile payload."""
     try:
         return RegisterResponse.model_validate(service.register(req.model_dump()))
     except ValueError as exc:
@@ -38,6 +41,7 @@ def register_endpoint(req: RegisterRequest, service: AuthService = Depends(get_a
     responses={401: {"description": "Invalid credentials"}},
 )
 def login_endpoint(req: LoginRequest, service: AuthService = Depends(get_auth_service)) -> TokenPairResponse:
+    """Validate credentials and return access/refresh tokens."""
     try:
         return TokenPairResponse.model_validate(service.login(req.login, req.password))
     except ValueError as exc:
@@ -52,6 +56,7 @@ def login_endpoint(req: LoginRequest, service: AuthService = Depends(get_auth_se
     responses={401: {"description": "Invalid refresh token"}},
 )
 def refresh_endpoint(req: RefreshRequest, service: AuthService = Depends(get_auth_service)) -> AccessTokenResponse:
+    """Issue a new access token using refresh token."""
     try:
         return AccessTokenResponse.model_validate(service.refresh(req.refresh_token))
     except Exception as exc:
@@ -66,6 +71,7 @@ def refresh_endpoint(req: RefreshRequest, service: AuthService = Depends(get_aut
     responses={401: {"description": "Invalid token"}},
 )
 def validate_endpoint(req: ValidateRequest, service: AuthService = Depends(get_auth_service)) -> ValidateResponse:
+    """Validate access token and return user_id."""
     try:
         return ValidateResponse.model_validate(service.validate(req.token))
     except Exception as exc:

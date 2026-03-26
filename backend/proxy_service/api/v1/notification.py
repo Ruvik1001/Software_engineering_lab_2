@@ -1,3 +1,5 @@
+"""Proxy notification routes."""
+
 from fastapi import APIRouter, Depends
 
 from use_case.notification_proxy import NotificationProxyUseCase
@@ -19,5 +21,6 @@ async def send_notification(
     token: str = Depends(get_token_value),
     use_case: NotificationProxyUseCase = Depends(get_notification_proxy_use_case),
 ) -> NotificationSendResponse:
+    """Authorize and send notification via notification service."""
     await require_user(token)
     return await use_case.send(token=token, payload=body.model_dump())

@@ -1,9 +1,12 @@
-from fastapi.testclient import TestClient
+"""Integration tests for proxy service health endpoint."""
+
 from pathlib import Path
 import importlib
 import importlib.util
 import sys
 from unittest.mock import patch
+
+from fastapi.testclient import TestClient
 
 
 _service_dir = Path(__file__).resolve().parents[1]
@@ -31,21 +34,31 @@ client = TestClient(app)
 
 class _DummyResponse:
     def __init__(self, status_code: int):
+        """Create dummy response with status code."""
         self.status_code = status_code
+
+    def is_ok(self) -> bool:
+        """Return True if status code is 2xx."""
+        return 200 <= self.status_code < 300
 
 
 def _make_client(raise_on: str | None = None):
+    """Factory for mocked httpx.AsyncClient."""
     class _DummyAsyncClient:
         def __init__(self, timeout: float = 2):  # noqa: ARG002
-            pass
+            """Create dummy async client."""
+            self._timeout = timeout
 
         async def __aenter__(self):
+            """Enter async context manager."""
             return self
 
         async def __aexit__(self, exc_type, exc, tb):  # noqa: ANN001,ARG002,ARG003
+            """Exit async context manager."""
             return False
 
         async def get(self, url: str):
+            """Return a dummy response or raise RuntimeError."""
             if raise_on and raise_on in url:
                 raise RuntimeError("boom")
             return _DummyResponse(200)
@@ -54,6 +67,7 @@ def _make_client(raise_on: str | None = None):
 
 
 def test_health_json_ui_mode_0_all_ok() -> None:
+    """Health endpoint returns json payload in ui_mode=0."""
     with patch.object(_module.httpx, "AsyncClient", _make_client()):
         response = client.get("/health")
 
@@ -66,6 +80,7 @@ def test_health_json_ui_mode_0_all_ok() -> None:
 
 
 def test_health_ui_mode_1_returns_html() -> None:
+    """Health endpoint returns HTML in ui_mode=1."""
     with patch.object(_module.httpx, "AsyncClient", _make_client()):
         response = client.get("/health?ui_mode=1")
 
@@ -76,6 +91,7 @@ def test_health_ui_mode_1_returns_html() -> None:
 
 
 def test_health_handles_service_error() -> None:
+    """Health endpoint marks service error when downstream fails."""
     with patch.object(_module.httpx, "AsyncClient", _make_client(raise_on="goal_service")):
         response = client.get("/health")
 
@@ -84,4 +100,3 @@ def test_health_handles_service_error() -> None:
     goal = next(s for s in data["services"] if s["name"] == "goal_service")
     assert goal["status"] == "error"
     assert "error" in goal
-

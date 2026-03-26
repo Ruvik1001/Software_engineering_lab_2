@@ -1,9 +1,12 @@
+"""Proxy service application entrypoint."""
+
 from __future__ import annotations
 
-import time
 import html as html_lib
-import yaml
+import time
+
 import httpx
+import yaml
 
 from fastapi import FastAPI, Query
 from fastapi.responses import HTMLResponse, Response
@@ -23,6 +26,7 @@ app.include_router(proxy_api_router, prefix="/api/v1")
 
 @app.get("/health")
 async def health(ui_mode: int = Query(default=0, ge=0)):
+    """Aggregate health information from all microservices."""
     services = [
         ("auth_service", f"{AUTH_URL}/health"),
         ("user_service", f"{USER_URL}/health"),
@@ -49,7 +53,7 @@ async def health(ui_mode: int = Query(default=0, ge=0)):
                         "status": status,
                     }
                 )
-            except Exception as e:  # noqa: BLE001
+            except httpx.HTTPError as e:
                 duration_ms = int((time.perf_counter() - start) * 1000)
                 results.append(
                     {
@@ -97,6 +101,7 @@ async def health(ui_mode: int = Query(default=0, ge=0)):
 
 @app.get("/openapi.yaml", include_in_schema=False)
 async def get_openapi_yaml():
+    """Return OpenAPI schema as YAML."""
     # Получаем спецификацию OpenAPI (генерируется один раз)
     openapi_json = app.openapi()
     # Преобразуем в YAML

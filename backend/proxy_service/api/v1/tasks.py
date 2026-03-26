@@ -1,3 +1,5 @@
+"""Proxy task routes."""
+
 from fastapi import APIRouter, Depends
 
 from use_case.task_proxy import TaskProxyUseCase
@@ -19,6 +21,7 @@ async def create_task(
     token: str = Depends(get_token_value),
     use_case: TaskProxyUseCase = Depends(get_task_proxy_use_case),
 ) -> TaskResponse:
+    """Authorize and create task via task service."""
     user_id = await require_user(token)
     return await use_case.create_task(token=token, user_id=user_id, payload=body.model_dump())
 
@@ -34,6 +37,7 @@ async def tasks_by_goal(
     token: str = Depends(get_token_value),
     use_case: TaskProxyUseCase = Depends(get_task_proxy_use_case),
 ) -> list[TaskResponse]:
+    """Authorize and list tasks for goal via task service."""
     user_id = await require_user(token)
     return await use_case.by_goal(token=token, user_id=user_id, goal_id=goal_id)
 
@@ -50,5 +54,6 @@ async def task_status(
     token: str = Depends(get_token_value),
     use_case: TaskProxyUseCase = Depends(get_task_proxy_use_case),
 ) -> TaskResponse:
+    """Authorize and update task status via task service."""
     user_id = await require_user(token)
     return await use_case.update_status(token=token, user_id=user_id, task_id=task_id, payload=body.model_dump())

@@ -1,3 +1,5 @@
+"""User service HTTP API routes."""
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from schema.user import CreateUserRequest, UserResponse
@@ -15,6 +17,7 @@ user_router = APIRouter(tags=["users"])
     responses={400: {"description": "Duplicate login"}},
 )
 def create(req: CreateUserRequest, service: UserService = Depends(get_user_service)) -> UserResponse:
+    """Create a new user profile."""
     try:
         return UserResponse.model_validate(service.create_user(req.model_dump()))
     except ValueError as exc:
@@ -29,6 +32,7 @@ def create(req: CreateUserRequest, service: UserService = Depends(get_user_servi
     responses={404: {"description": "User not found"}},
 )
 def by_login(login: str, service: UserService = Depends(get_user_service)) -> UserResponse:
+    """Return one user by exact login."""
     user = service.get_by_login(login)
     if not user:
         raise HTTPException(status_code=404, detail="user not found")
@@ -42,4 +46,5 @@ def by_login(login: str, service: UserService = Depends(get_user_service)) -> Us
     description="Searches users by partial first/last name match.",
 )
 def search(mask: str = Query(min_length=1), service: UserService = Depends(get_user_service)) -> list[UserResponse]:
+    """Search users by name mask."""
     return [UserResponse.model_validate(item) for item in service.search_by_mask(mask)]

@@ -1,3 +1,5 @@
+"""Proxy goal routes."""
+
 from fastapi import APIRouter, Depends
 
 from use_case.goal_proxy import GoalProxyUseCase
@@ -19,6 +21,7 @@ async def create_goal(
     token: str = Depends(get_token_value),
     use_case: GoalProxyUseCase = Depends(get_goal_proxy_use_case),
 ) -> GoalResponse:
+    """Authorize and create goal via goal service."""
     user_id = await require_user(token)
     return await use_case.create_goal(token=token, user_id=user_id, payload=body.model_dump())
 
@@ -33,5 +36,6 @@ async def list_goals(
     token: str = Depends(get_token_value),
     use_case: GoalProxyUseCase = Depends(get_goal_proxy_use_case),
 ) -> list[GoalResponse]:
+    """Authorize and list goals via goal service."""
     user_id = await require_user(token)
     return await use_case.list_goals(token=token, user_id=user_id)

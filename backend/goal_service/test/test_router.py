@@ -1,8 +1,10 @@
-from fastapi.testclient import TestClient
+"""Integration tests for goal service HTTP API."""
 
 from pathlib import Path
 import importlib.util
 import sys
+
+from fastapi.testclient import TestClient
 
 _service_dir = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_service_dir))
@@ -13,7 +15,10 @@ _module = importlib.util.module_from_spec(_spec)
 for k in list(sys.modules.keys()):
     if (
         k in {"api", "schema", "use_case", "util", "model", "interface", "implementation"}
-        or any(k.startswith(p + ".") for p in ["api", "schema", "use_case", "util", "model", "interface", "implementation"])
+        or any(
+            k.startswith(p + ".")
+            for p in ["api", "schema", "use_case", "util", "model", "interface", "implementation"]
+        )
     ):
         del sys.modules[k]
 _spec.loader.exec_module(_module)
@@ -23,6 +28,7 @@ client = TestClient(app)
 
 
 def test_create_and_list_goals() -> None:
+    """Create goal and verify it appears in owner's list."""
     created = client.post(
         "/api/v1/goals",
         json={"title": "Learn FastAPI"},
@@ -40,11 +46,13 @@ def test_create_and_list_goals() -> None:
 
 
 def test_create_goal_validation_error() -> None:
+    """Empty title triggers validation error (422)."""
     response = client.post("/api/v1/goals", json={"title": ""}, headers={"X-User-Id": "1"})
     assert response.status_code == 422
 
 
 def test_missing_x_user_id() -> None:
+    """Missing X-User-Id header returns 401."""
     response_post = client.post("/api/v1/goals", json={"title": "T"})
     assert response_post.status_code == 401
 

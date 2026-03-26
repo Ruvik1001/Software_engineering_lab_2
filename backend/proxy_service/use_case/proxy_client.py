@@ -1,8 +1,12 @@
+"""HTTP forwarding gateway used by proxy use-cases."""
+
 from fastapi import HTTPException
 import httpx
 
 
 class ProxyGatewayUseCase:
+    """Forwards requests to downstream services."""
+
     async def forward(
         self,
         method: str,
@@ -11,6 +15,8 @@ class ProxyGatewayUseCase:
         payload: dict | None = None,
         x_user_id: int | None = None,
     ) -> dict | list:
+        """Forward HTTP request and return parsed JSON."""
+        # pylint: disable=too-many-arguments,too-many-positional-arguments
         headers: dict[str, str] = {}
         if token:
             headers["Authorization"] = f"Bearer {token}"

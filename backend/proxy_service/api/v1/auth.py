@@ -1,3 +1,5 @@
+"""Proxy auth routes."""
+
 from fastapi import APIRouter, Depends
 
 from use_case.auth_proxy import AuthProxyUseCase
@@ -23,6 +25,7 @@ async def register(
     body: AuthRegisterRequest,
     use_case: AuthProxyUseCase = Depends(get_auth_proxy_use_case),
 ) -> AuthRegisterResponse:
+    """Forward registration request to auth service."""
     return await use_case.register(body.model_dump())
 
 
@@ -36,6 +39,7 @@ async def login(
     body: AuthLoginRequest,
     use_case: AuthProxyUseCase = Depends(get_auth_proxy_use_case),
 ) -> AuthTokenResponse:
+    """Forward login request to auth service."""
     return await use_case.login(body.model_dump())
 
 
@@ -49,4 +53,5 @@ async def refresh(
     body: AuthRefreshRequest,
     use_case: AuthProxyUseCase = Depends(get_auth_proxy_use_case),
 ) -> AuthTokenResponse:
+    """Forward refresh request to auth service."""
     return await use_case.refresh(body.model_dump())

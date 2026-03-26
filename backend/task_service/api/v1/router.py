@@ -1,3 +1,5 @@
+"""Task service HTTP API routes."""
+
 from fastapi import APIRouter, Depends, HTTPException
 
 from schema.task import CreateTaskRequest, TaskResponse, UpdateStatusRequest
@@ -19,6 +21,7 @@ def create(
     owner_id: int = Depends(get_owner_id),
     service: TaskService = Depends(get_task_service),
 ) -> TaskResponse:
+    """Create a new task for the given owner."""
     try:
         return TaskResponse.model_validate(service.create_task(req.model_dump(), owner_id))
     except ValueError as exc:
@@ -36,6 +39,7 @@ def by_goal(
     owner_id: int = Depends(get_owner_id),
     service: TaskService = Depends(get_task_service),
 ) -> list[TaskResponse]:
+    """List tasks for a specific goal and owner."""
     return [TaskResponse.model_validate(item) for item in service.get_tasks(goal_id, owner_id)]
 
 
@@ -52,6 +56,7 @@ def patch_status(
     owner_id: int = Depends(get_owner_id),
     service: TaskService = Depends(get_task_service),
 ) -> TaskResponse:
+    """Update status for a task owned by the current owner."""
     try:
         task = service.update_status(task_id, owner_id, req.status)
     except ValueError as exc:

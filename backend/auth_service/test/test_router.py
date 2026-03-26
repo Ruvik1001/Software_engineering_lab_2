@@ -1,9 +1,11 @@
-from fastapi.testclient import TestClient
+"""Integration tests for auth service HTTP API."""
 
 from pathlib import Path
 import importlib.util
 import os
 import sys
+
+from fastapi.testclient import TestClient
 
 _service_dir = Path(__file__).resolve().parents[1]
 
@@ -28,7 +30,10 @@ _module = importlib.util.module_from_spec(_spec)
 for k in list(sys.modules.keys()):
     if (
         k in {"api", "schema", "use_case", "util", "model", "interface", "implementation"}
-        or any(k.startswith(p + ".") for p in ["api", "schema", "use_case", "util", "model", "interface", "implementation"])
+        or any(
+            k.startswith(p + ".")
+            for p in ["api", "schema", "use_case", "util", "model", "interface", "implementation"]
+        )
     ):
         del sys.modules[k]
 _spec.loader.exec_module(_module)
@@ -38,18 +43,28 @@ client = TestClient(app)
 
 
 def test_register_and_login_success() -> None:
+    """Register user and login returns access token."""
     register = client.post(
         "/api/v1/auth/register",
-        json={"login": "owner@example.com", "password": "pass123", "first_name": "Own", "last_name": "Er"},
+        json={
+            "login": "owner@example.com",
+            "password": "pass123",
+            "first_name": "Own",
+            "last_name": "Er",
+        },
     )
     assert register.status_code == 200
 
-    login = client.post("/api/v1/auth/login", json={"login": "owner@example.com", "password": "pass123"})
+    login = client.post(
+        "/api/v1/auth/login",
+        json={"login": "owner@example.com", "password": "pass123"},
+    )
     assert login.status_code == 200
     assert "access_token" in login.json()
 
 
 def test_register_duplicate_login() -> None:
+    """Registering same login twice returns 400."""
     client.post(
         "/api/v1/auth/register",
         json={"login": "dup@example.com", "password": "pass", "first_name": "A", "last_name": "B"},
@@ -62,6 +77,7 @@ def test_register_duplicate_login() -> None:
 
 
 def test_refresh_with_access_token_fails() -> None:
+    """Refreshing with access token must fail."""
     client.post(
         "/api/v1/auth/register",
         json={"login": "r1_refresh@example.com", "password": "pass", "first_name": "A", "last_name": "B"},
@@ -73,6 +89,7 @@ def test_refresh_with_access_token_fails() -> None:
 
 
 def test_register_invalid_email() -> None:
+    """Invalid email in login field yields 422."""
     response = client.post(
         "/api/v1/auth/register",
         json={"login": "not-an-email", "password": "pass123", "first_name": "A", "last_name": "B"},
@@ -81,11 +98,13 @@ def test_register_invalid_email() -> None:
 
 
 def test_validate_invalid_token() -> None:
+    """Validating a bad token yields 401."""
     response = client.post("/api/v1/auth/validate", json={"token": "bad-token"})
     assert response.status_code == 401
 
 
 def test_validate_success() -> None:
+    """Valid token validates and returns integer user_id."""
     client.post(
         "/api/v1/auth/register",
         json={"login": "val_success@example.com", "password": "pass123", "first_name": "A", "last_name": "B"},
@@ -103,5 +122,6 @@ def test_validate_success() -> None:
 
 
 def test_refresh_invalid_token() -> None:
+    """Refreshing with invalid refresh token yields 401."""
     response = client.post("/api/v1/auth/refresh", json={"refresh_token": "bad-refresh-token"})
     assert response.status_code == 401

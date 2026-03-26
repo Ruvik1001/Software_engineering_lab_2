@@ -14,6 +14,37 @@
 - `notification_service` - mock сервис (TODO для расширения)
 - `calendar_service` - mock сервис (TODO для расширения)
 
+## Структура проекта
+
+```text
+Software_engineering_lab_2/
+├─ backend/
+│  ├─ auth_service/
+│  ├─ user_service/
+│  ├─ goal_service/
+│  ├─ task_service/
+│  ├─ notification_service/
+│  └─ calendar_service/
+├─ wheelhouse_linux/         # prebuilt Linux wheels для offline-сборки Docker
+├─ scripts/
+│  └─ lint.ps1               # запуск pylint/prospector по сервисам
+├─ docker-compose.yml
+├─ .pylintrc
+└─ .prospector.yaml
+```
+
+Каждый сервис в `backend/*_service` имеет похожую внутреннюю структуру:
+
+- `main.py` - точка входа FastAPI
+- `api/` - HTTP endpoint'ы
+- `schema/` - DTO для request/response
+- `model/` - доменные модели
+- `use_case/` - бизнес-логика
+- `implementation/` - in-memory реализация репозиториев
+- `interface/` - контракты (Protocol)
+- `util/` - конфигурация и dependency providers
+- `test/` - тесты сервиса
+
 ## Хранилище
 
 Все сервисы используют in-memory хранилище в рамках контейнера.
@@ -26,6 +57,44 @@ docker compose up --build
 
 Прокси доступен на `http://localhost:8000`.
 Swagger прокси: `http://localhost:8000/docs`.
+
+## Кодстайл и качество кода
+
+В проекте используются:
+
+- `pylint` (конфиг: `.pylintrc`)
+- `prospector` (конфиг: `.prospector.yaml`)
+
+Принятые правила:
+
+- максимальная длина строки: `120`
+- проверки запускаются по каждому сервису изолированно (чтобы не было конфликтов одноимённых пакетов `api`, `schema`, `util`)
+- целевая оценка `pylint`: `9.9+` 
+
+## Запуск линтера
+
+### Windows / PowerShell (рекомендуется)
+
+Из корня проекта:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\lint.ps1
+```
+
+Скрипт:
+
+- запускает `pylint` для каждого `backend/*_service`
+- затем запускает `prospector` для каждого `backend/*_service`
+
+### Ручной запуск для одного сервиса
+
+Пример для `auth_service`:
+
+```powershell
+$env:PYTHONPATH = (Resolve-Path .\backend\auth_service)
+python -m pylint .\backend\auth_service --rcfile .\.pylintrc --score y
+prospector .\backend\auth_service -o text --profile-path .
+```
 
 ## Если Docker не может скачать пакеты напрямую
 

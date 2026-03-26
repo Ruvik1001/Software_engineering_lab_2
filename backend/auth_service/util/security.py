@@ -1,3 +1,5 @@
+"""JWT helpers for auth service."""
+
 from datetime import datetime, timedelta, timezone
 import os
 
@@ -17,9 +19,11 @@ if not JWT_ALGO:
     raise RuntimeError("Missing JWT_ALGO. Put it into auth_service/.env_example or pass via docker-compose env_file.")
 
 def encode_token(payload: dict, expires_minutes: int) -> str:
+    """Encode JWT token with expiration."""
     data = payload.copy()
     data["exp"] = datetime.now(timezone.utc) + timedelta(minutes=expires_minutes)
     return jwt.encode(data, SECRET_JWT_KEY, algorithm=JWT_ALGO)
 
 def decode_token(token: str) -> dict:
+    """Decode JWT token and return payload."""
     return jwt.decode(token, SECRET_JWT_KEY, algorithms=[JWT_ALGO])

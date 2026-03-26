@@ -1,3 +1,5 @@
+"""Goal service HTTP API routes."""
+
 from fastapi import APIRouter, Depends
 
 from schema.goal import CreateGoalRequest, GoalResponse
@@ -18,6 +20,7 @@ def create(
     owner_id: int = Depends(get_owner_id),
     service: GoalService = Depends(get_goal_service),
 ) -> GoalResponse:
+    """Create a goal for the current owner."""
     return GoalResponse.model_validate(service.create_goal(title=req.title, owner_id=owner_id))
 
 
@@ -31,4 +34,5 @@ def list_all(
     owner_id: int = Depends(get_owner_id),
     service: GoalService = Depends(get_goal_service),
 ) -> list[GoalResponse]:
+    """List all goals for the current owner."""
     return [GoalResponse.model_validate(item) for item in service.list_goals(owner_id)]
