@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+httpx
+pydantic
+pyjwt
+pytest
+pytest-cov
+load-dotenv
