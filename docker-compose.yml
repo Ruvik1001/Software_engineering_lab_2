@@ -1,5 +1,6 @@
 services:
   auth_service:
+    platform: linux/amd64
     build:
       context: .
       dockerfile: ./backend/auth_service/Dockerfile
@@ -10,6 +11,7 @@ services:
     command: uvicorn main:app --host 0.0.0.0 --port 8000
 
   user_service:
+    platform: linux/amd64
     build:
       context: .
       dockerfile: ./backend/user_service/Dockerfile
@@ -20,6 +22,7 @@ services:
     command: uvicorn main:app --host 0.0.0.0 --port 8000
 
   goal_service:
+    platform: linux/amd64
     build:
       context: .
       dockerfile: ./backend/goal_service/Dockerfile
@@ -30,6 +33,7 @@ services:
     command: uvicorn main:app --host 0.0.0.0 --port 8000
 
   task_service:
+    platform: linux/amd64
     build:
       context: .
       dockerfile: ./backend/task_service/Dockerfile
@@ -40,6 +44,7 @@ services:
     command: uvicorn main:app --host 0.0.0.0 --port 8000
 
   notification_service:
+    platform: linux/amd64
     build:
       context: .
       dockerfile: ./backend/notification_service/Dockerfile
@@ -50,6 +55,7 @@ services:
     command: uvicorn main:app --host 0.0.0.0 --port 8000
 
   calendar_service:
+    platform: linux/amd64
     build:
       context: .
       dockerfile: ./backend/calendar_service/Dockerfile
@@ -60,6 +66,7 @@ services:
     command: uvicorn main:app --host 0.0.0.0 --port 8000
 
   proxy_service:
+    platform: linux/amd64
     build:
       context: .
       dockerfile: ./backend/proxy_service/Dockerfile

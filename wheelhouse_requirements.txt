@@ -1,0 +1,12 @@
+# Единый список для заполнения wheelhouse_linux (все сервисы + транзитивы через pip download).
+# Обновляйте версии здесь и в backend/*/requirements.txt вместе; затем scripts/sync_wheelhouse.*
+fastapi==0.135.3
+uvicorn==0.44.0
+httpx==0.28.1
+pydantic[email]==2.12.5
+pydantic_core==2.41.5
+pyjwt==2.12.1
+pytest==9.0.2
+pytest-cov==7.1.0
+load-dotenv==0.1.0
+PyYAML==6.0.3

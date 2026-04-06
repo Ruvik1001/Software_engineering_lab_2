@@ -25,9 +25,12 @@ Software_engineering_lab_2/
 │  ├─ task_service/
 │  ├─ notification_service/
 │  └─ calendar_service/
-├─ wheelhouse_linux/         # prebuilt Linux wheels для offline-сборки Docker
+├─ wheelhouse_linux/         # колёса для офлайн-сборки (linux/amd64, cp312)
+├─ wheelhouse_requirements.txt  # объединённый список версий для sync_wheelhouse
 ├─ scripts/
-│  └─ lint.ps1               # запуск pylint/prospector по сервисам
+│  ├─ lint.ps1               # pylint/prospector по сервисам
+│  ├─ sync_wheelhouse.ps1    # скачать колёса (Windows)
+│  └─ sync_wheelhouse.sh     # скачать колёса (Linux/macOS)
 ├─ docker-compose.yml
 ├─ .pylintrc
 └─ .prospector.yaml
@@ -51,12 +54,27 @@ Software_engineering_lab_2/
 
 ## Запуск
 
+Зависимости **зафиксированы по версиям** в `backend/*/requirements.txt` и в корневом `wheelhouse_requirements.txt`. В каталоге `wheelhouse_linux/` лежат готовые wheels для офлайн-сборки: при `docker compose build` pip **не ходит в PyPI** (`--no-index --find-links /wheels`).
+
+В `docker-compose.yml` для всех сервисов задано `platform: linux/amd64`, чтобы один и тот же набор manylinux-колёс подходил на любой машине с Docker (включая Apple Silicon: контейнеры собираются под amd64).
+
 ```bash
 docker compose up --build
 ```
 
-Прокси доступен на `http://localhost:8000`.
-Swagger прокси: `http://localhost:8000/docs`.
+Прокси: `http://localhost:8000`, Swagger: `http://localhost:8000/docs`.
+
+### Обновить колёса (есть интернет)
+
+Если вы меняете версии пакетов, сначала обновите `wheelhouse_requirements.txt` и зеркально `backend/*/requirements.txt`, затем:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\sync_wheelhouse.ps1
+```
+
+или на Linux/macOS: `chmod +x scripts/sync_wheelhouse.sh && ./scripts/sync_wheelhouse.sh`
+
+После этого закоммитьте изменения в `wheelhouse_linux/`, чтобы клон репозитория снова собирался офлайн.
 
 ## Кодстайл и качество кода
 
@@ -96,47 +114,9 @@ python -m pylint .\backend\auth_service --rcfile .\.pylintrc --score y
 prospector .\backend\auth_service -o text --profile-path .
 ```
 
-## Если Docker не может скачать пакеты напрямую
+### Если сборка падает на офлайн-установке
 
-В `Dockerfile` для сервисов зависимости ставятся без доступа к сети:
-- `pip install --no-index --find-links /wheels -r requirements.txt`
-- контейнер берет prebuilt wheels из папки `wheelhouse_linux/`
-
-Если при `docker compose up --build` падает установка пакетов (ошибки сети/прокси/доступа к PyPI), нужно заранее докачать wheel'ы на хост и положить их в `wheelhouse_linux/`.
-
-### Шаги (Windows / PowerShell)
-
-1. Скачайте Linux wheels (для `python:3.12-slim`) во `wheelhouse_linux`:
-```powershell
-$dest = "wheelhouse_linux"
-New-Item -ItemType Directory -Force $dest | Out-Null
-
-$platform = "manylinux_2_17_x86_64"
-$pythonVersion = "3.12"
-$implementation = "cp"
-$abi = "cp312"
-
-$reqFiles = Get-ChildItem -Path backend -Directory -Filter "*_service" |
-  ForEach-Object { Join-Path $_.FullName "requirements.txt" }
-
-foreach ($rf in $reqFiles) {
-  pip download `
-    --dest $dest `
-    --platform $platform `
-    --python-version $pythonVersion `
-    --implementation $implementation `
-    --abi $abi `
-    --only-binary=:all: `
-    -r $rf
-}
-```
-
-2. Убедитесь, что папка `wheelhouse_linux` заполнена `.whl` файлами.
-
-3. Запустите сборку заново:
-```powershell
-docker compose up --build
-```
+При `--no-index` в образ попадают только файлы из `wheelhouse_linux/`. Типичные причины: каталог пустой после клона (нужен `git pull` с колёсами), либо меняли версии без повторного `sync_wheelhouse`. Скрипт `pip download` по `wheelhouse_requirements.txt` подтягивает и **транзитивные** зависимости (в том числе `pydantic_core` и др. нативные колёса под cp312/manylinux).
 
 ## Основные endpoint'ы через proxy
 
